@@ -28,7 +28,11 @@ def tjbfeild(dayadd,TimePeriod,begintime_num,fieldnum,target_email):
 
     while begintime_num!={}:
         # response0 = request("GET", f"http://gzagwx.wxlgzh.com/Field/GetVenueState?dateadd={dayadd}&TimePeriod=0&VenueNo=07&FieldTypeNo=11&_={_}", headers=headers, data=payload)
-        response0 = request("GET", f"http://gzagwx.wxlgzh.com/Field/GetVenueState?dateadd={dayadd}&TimePeriod={TimePeriod}&VenueNo=07&FieldTypeNo=11", headers=headers, data=payload)
+        try:
+            response0 = request("GET", f"http://gzagwx.wxlgzh.com/Field/GetVenueState?dateadd={dayadd}&TimePeriod={TimePeriod}&VenueNo=07&FieldTypeNo=11", headers=headers, data=payload)
+        except:
+            sleep(10)
+            continue
         data = DataFrame(literal_eval(loads(response0.text)['resultdata']))
         free_field = data.query('FieldState=="0"')
         if free_field.shape[0]>0:
@@ -46,7 +50,11 @@ def tjbfeild(dayadd,TimePeriod,begintime_num,fieldnum,target_email):
                         [FieldNo,FieldName,BeginTime] = free_field_fit.reset_index().loc[j,['FieldNo','FieldName','BeginTime']]
                         # URL编码
                         url_encoded = quote('[{"FieldNo":"'+FieldNo+'", "FieldTypeNo":"11", "FieldName":"'+FieldName+'", "BeginTime":"'+str(BeginTime)+':00", "Endtime":"'+str(BeginTime+1)+':00", "Price":"20.00"}]')
-                        response1 = request("GET", f"http://gzagwx.wxlgzh.com/Field/OrderField?checkdata={url_encoded}&dateadd={dayadd}&VenueNo=07", headers=headers, data=payload)
+                        try:
+                            response1 = request("GET", f"http://gzagwx.wxlgzh.com/Field/OrderField?checkdata={url_encoded}&dateadd={dayadd}&VenueNo=07", headers=headers, data=payload)
+                        except:
+                            sleep(1)
+                            continue
                         print(response1.text)
                         if response1.status_code==200 and loads(response1.text)["message"]!="预订异常，请重试":
                             print(f'@@@Finish Feild***BeginTime:{i}!!!')
@@ -103,10 +111,10 @@ if __name__ == '__main__':
     cmd=input('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n@@@@@***HAONAN TJB PROGRAM 20 Dec 2024***@@@@@\n@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\nPlease Input Command:\n1#20:1,21:1#1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22#o_xxx#xxx@qq.com\n')
     
     # haonanCMD
-    # cmd='1#20:1,21:1#1,2,3,4,5,6,7,8,9,10,11,12,13,15,17,18,20,22#o_DYGt9-Zdv4S5m_MDhJCTH6bLXc#844047017@qq.com'
+    # cmd='7#20:1,21:1#1,2,3,4,5,6,7,8,9,10,11,12,13,15,17,18,20,22#o_DYGt9-Zdv4S5m_MDhJCTH6bLXc#844047017@qq.com'
 
-    #wjCMD
-    # cmd='1#8:1#1#o_DYGtwBUQwDNt0TgEDLVmhtz28o#806016719@qq.com'
+    # wjCMD
+    # cmd='2#20:1#1#o_DYGtwBUQwDNt0TgEDLVmhtz28o#806016719@qq.com'
     
     dayadd=cmd.split('#')[0] #几天后
     begintime_num=eval('{'+cmd.split('#')[1]+'}') #上午0,下午1,晚上2
@@ -139,4 +147,3 @@ if __name__ == '__main__':
     # while True:
     #     schedule.run_pending()
     #     sleep(1)
-
